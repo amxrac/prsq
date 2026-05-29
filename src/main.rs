@@ -1,21 +1,25 @@
-use crate::queue::Todo;
+use crate::{
+    args::{Cli, Commands},
+    queue::{Queue, Todo},
+};
 use chrono::Utc;
-use std::collections::VecDeque;
+use clap::Parser;
+use std::{collections::VecDeque, process::Command};
 
 mod args;
 mod queue;
 
 fn main() {
-    // let mut deq = VecDeque::new();
-    // deq.push_back(1);
-    // deq.push_back(2);
-    // deq.push_front(9);
-    // println!("{:?}", deq);
-    let todo_item = Todo {
-        id: 1,
-        description: String::from("test"),
-        created_at: Utc::now().timestamp() as u64,
-    };
+    let mut queue: Queue<Todo> = Queue::new();
+    let created_at = Utc::now().timestamp() as u64;
+    let cli = Cli::parse();
+    match cli.command {
+        Some(Commands::Add { description }) => queue.enqueue(Todo {
+            id: (),
+            description,
+            created_at,
+        }),
+    }
 }
 
 // add task: todo add "Buy groceries"

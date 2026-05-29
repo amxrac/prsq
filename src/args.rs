@@ -1,7 +1,5 @@
 use clap::{Parser, Subcommand};
 
-use crate::queue::Todo;
-
 #[derive(Parser)]
 #[command(name = "prsq", version, about = "a persistent todo queue", long_about = None)]
 pub struct Cli {

@@ -1,9 +1,13 @@
+use anyhow::Result;
 use chrono::Utc;
-use std::collections::VecDeque;
+use std::{
+    collections::VecDeque,
+    fs,
+    io::{BufReader, BufWriter},
+    path::Path,
+};
 
 use borsh::{BorshDeserialize, BorshSerialize};
-
-use crate::queue;
 
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct Todo {
@@ -17,6 +21,7 @@ pub struct Queue<T> {
     items: VecDeque<T>,
 }
 
+#[allow(dead_code)]
 impl<T> Queue<T> {
     pub fn new() -> Self {
         Self {
@@ -51,7 +56,7 @@ impl<T> Queue<T> {
 
 #[derive(Debug, BorshDeserialize, BorshSerialize, Clone)]
 pub struct StoreTodo {
-    queue: Queue<Todo>,
+    pub queue: Queue<Todo>,
     pub last_id: u64,
 }
 
@@ -80,19 +85,21 @@ impl StoreTodo {
         self.queue.dequeue()
     }
 
-    pub fn exit() {
-        todo!()
+    pub fn save(&self) -> Result<()> {
+        let file = fs::File::create("todos.bin")?;
+        let mut writer = BufWriter::new(file);
+        borsh::to_writer(&mut writer, &self)?;
+        Ok(())
     }
 
-    pub fn restart() {
-        todo!()
-    }
-
-    pub fn save() {
-        todo!()
-    }
-
-    pub fn load() {
-        todo!()
+    pub fn load() -> Result<Self> {
+        if Path::new("todos.bin").exists() {
+            let file = fs::File::open("todos.bin")?;
+            let mut reader = BufReader::new(file);
+            let data = borsh::from_reader(&mut reader)?;
+            Ok(data)
+        } else {
+            Ok(Self::new())
+        }
     }
 }

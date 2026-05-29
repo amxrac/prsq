@@ -1,28 +1,37 @@
 use crate::{
     args::{Cli, Commands},
-    queue::{Queue, Todo},
+    queue::StoreTodo,
 };
-use chrono::Utc;
+use anyhow::{Ok, Result};
+
 use clap::Parser;
-use std::{collections::VecDeque, process::Command};
 
 mod args;
 mod queue;
 
-fn main() {
-    let mut queue: Queue<Todo> = Queue::new();
-    let created_at = Utc::now().timestamp() as u64;
+fn main() -> Result<()> {
+    let mut stored = StoreTodo::load()?;
+
     let cli = Cli::parse();
     match cli.command {
-        Some(Commands::Add { description }) => queue.enqueue(Todo {
-            id: (),
-            description,
-            created_at,
-        }),
+        Some(Commands::Add { description }) => {
+            stored.add(description.clone());
+            stored.save()?;
+            println!("task: {:?} has added successfully", description);
+        }
+        Some(Commands::List) => {
+            for task in stored.list() {
+                println!("{:?}", task);
+            }
+        }
+        Some(Commands::Done) => {
+            match stored.done() {
+                Some(task) => println!("task: {:?} has been completed", task.description),
+                None => println!("no tasks to complete"),
+            }
+            stored.save()?;
+        }
+        None => println!("no command provided. run with --help to see available commands."),
     }
+    Ok(())
 }
-
-// add task: todo add "Buy groceries"
-// list tasks: todo list
-// complete next task: todo done
-//

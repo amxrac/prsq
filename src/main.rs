@@ -1,13 +1,10 @@
-use crate::{
+use anyhow::{Ok, Result};
+use prsq::{
     args::{Cli, Commands},
     queue::StoreTodo,
 };
-use anyhow::{Ok, Result};
 
 use clap::Parser;
-
-mod args;
-mod queue;
 
 fn main() -> Result<()> {
     let mut stored = StoreTodo::load()?;
@@ -26,7 +23,7 @@ fn main() -> Result<()> {
         }
         Some(Commands::Done) => {
             match stored.done() {
-                Some(task) => println!("task: {:?} has been completed", task.description),
+                Some(task) => println!("task: {} has been completed", task.description),
                 None => println!("no tasks to complete"),
             }
             stored.save()?;
